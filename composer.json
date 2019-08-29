@@ -1,0 +1,25 @@
+{
+	"name": "hell-sh/pac",
+	"description": "A library to fool around with Chromium asynchronously.",
+	"keywords": [
+		"async",
+		"asynchronous",
+		"chromium",
+		"chrome"
+	],
+	"homepage": "https://github.com/hell-sh/pac",
+	"type": "library",
+	"license": "MIT",
+	"autoload": {
+		"psr-4": {
+			"pac\\": "src/"
+		}
+	},
+	"require": {
+		"php": "^7.0",
+		"ext-curl": "*",
+		"ext-json": "^1.7",
+		"ext-zip": "^1.15",
+		"hell-sh/paws": "^0.1.0"
+	}
+}
