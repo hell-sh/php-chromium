@@ -18,7 +18,7 @@
 	"require": {
 		"php": "^7.0",
 		"ext-curl": "*",
-		"ext-json": "^1.7",
+		"ext-json": "^1.4",
 		"ext-zip": "^1.15",
 		"hell-sh/paws": "^0.1.0"
 	}
