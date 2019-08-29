@@ -102,4 +102,9 @@ class Page
 			$callback(new DomNode($this, $result["root"]["nodeId"]));
 		});
 	}
+
+	function close($callback = null)
+	{
+		$this->exec("Page.close", [], $callback);
+	}
 }
