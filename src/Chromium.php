@@ -73,9 +73,16 @@ class Chromium
 	function download()
 	{
 		$dir = pac::REVS_DIRECTORY.$this->revision;
-		if(is_dir($dir))
+		if(is_dir(pac::REVS_DIRECTORY))
 		{
-			pac::recursivelyDelete($dir);
+			if(is_dir($dir))
+			{
+				pac::recursivelyDelete($dir);
+			}
+		}
+		else
+		{
+			mkdir(pac::REVS_DIRECTORY);
 		}
 		mkdir($dir);
 		$zip_file = pac::REVS_DIRECTORY.$this->revision."/".$this->getArchiveName().".zip";
