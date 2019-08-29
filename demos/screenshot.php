@@ -1,4 +1,8 @@
 <?php
+if(empty($argv[1]))
+{
+	die("Syntax: php screenshot.php <url>");
+}
 require "../vendor/autoload.php";
 use pac\
 {Chromium, Page};
@@ -11,6 +15,7 @@ $i = $c->start(false);
 $i->logging = true;
 $i->newPage(function(Page $page) use (&$i)
 {
+	global $argv;
 	$page->once("Page.frameStoppedLoading", function() use (&$page)
 	{
 		$page->getLayoutMetrics(function($result) use (&$page)
@@ -26,7 +31,7 @@ $i->newPage(function(Page $page) use (&$i)
 			});
 		});
 	})
-		 ->navigate("https://stackoverflow.com/");
+		 ->navigate($argv[1]);
 });
 while($i->isRunning())
 {
