@@ -93,6 +93,25 @@ class Page
 		return $this->exec("Page.getLayoutMetrics", [], $callback);
 	}
 
+	function setDocumentContent(string $html, $callback = null): Page
+	{
+		return $this->getFrameTree(function($result) use (&$html, &$callback)
+		{
+			$this->exec("Page.setDocumentContent", [
+				"frameId" => $result["frame"]["id"],
+				"html" => $html
+			], $callback);
+		});
+	}
+
+	function getFrameTree(callable $callback): Page
+	{
+		return $this->exec("Page.getFrameTree", [], function($result) use (&$callback)
+		{
+			$callback($result["frameTree"]);
+		});
+	}
+
 	function getDocument(callable $callback): Page
 	{
 		return $this->exec("DOM.getDocument", [
