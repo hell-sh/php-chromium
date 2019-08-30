@@ -126,4 +126,9 @@ class Page
 	{
 		$this->exec("Page.close", [], $callback);
 	}
+
+	function reload($callback = null)
+	{
+		$this->exec("Page.reload", [], $callback);
+	}
 }
