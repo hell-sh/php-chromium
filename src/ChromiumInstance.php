@@ -1,5 +1,6 @@
 <?php
 namespace pac;
+use Exception;
 use paws\
 {ServerConnection, TextFrame};
 class ChromiumInstance
@@ -12,6 +13,12 @@ class ChromiumInstance
 	public $callbacks = [];
 	public $event_handlers = [];
 
+	/**
+	 * @param string $executable
+	 * @param bool $headless
+	 * @param bool $disable_gpu
+	 * @throws Exception
+	 */
 	function __construct(string $executable, bool $headless = true, bool $disable_gpu = false)
 	{
 		$cmd = "\"$executable\" --remote-debugging-port=0";
