@@ -6,13 +6,16 @@ if(empty($argv[1]))
 require "../vendor/autoload.php";
 use pac\
 {Chromium, Page};
+use pas\pas;
 $c = new Chromium();
 iF(!$c->isAvailable())
 {
+	echo "Downloading Chromium...";
 	$c->download();
+	echo " Done.\n";
 }
 $i = $c->start(false);
-$i->logging = true;
+//$i->logging = true;
 $i->newPage(function(Page $page) use (&$i)
 {
 	global $argv;
@@ -26,6 +29,7 @@ $i->newPage(function(Page $page) use (&$i)
 				{
 					global $i;
 					file_put_contents("screenshot.png", base64_decode($data));
+					echo "Screenshot saved to screenshot.png.\n";
 					$i->close();
 				});
 			});
@@ -33,7 +37,4 @@ $i->newPage(function(Page $page) use (&$i)
 	})
 		 ->navigate($argv[1]);
 });
-while($i->isRunning())
-{
-	$i->handle();
-}
+pas::loop();

@@ -1,6 +1,7 @@
 <?php
 namespace pac;
 use Exception;
+use pas\pas;
 use paws\
 {ServerConnection, TextFrame};
 class ChromiumInstance
@@ -12,6 +13,7 @@ class ChromiumInstance
 	public $logging = false;
 	public $callbacks = [];
 	public $event_handlers = [];
+	public $running_condition;
 
 	/**
 	 * @param string $executable
@@ -46,6 +48,67 @@ class ChromiumInstance
 		], $this->pipes);
 		$out = fread($this->pipes[2], 1024);
 		$this->socket = new ServerConnection(trim(explode("\n", substr($out, strpos($out, "ws://")))[0]));
+		$this->running_condition = pas::condition(function()
+		{
+			return $this->isRunning();
+		});
+		$this->running_condition->add(function()
+		{
+			while($frame = $this->socket->readFrame(0))
+			{
+				if($frame instanceof TextFrame)
+				{
+					if($this->logging)
+					{
+						echo "> {$frame->data}\n";
+					}
+					$json = json_decode($frame->data, true);
+					if(isset($json["id"]))
+					{
+						if(array_key_exists($json["id"], $this->callbacks))
+						{
+							$this->callbacks[$json["id"]]($json["result"]);
+							unset($this->callbacks[$json["id"]]);
+						}
+					}
+					else if(isset($json["method"]))
+					{
+						$params = $json["params"] ?? [];
+						if(array_key_exists($json["method"], $this->event_handlers))
+						{
+							foreach($this->event_handlers[$json["method"]] as $i => $handler)
+							{
+								$handler[0]($params);
+								if($handler[1])
+								{
+									unset($this->event_handlers[$json["method"]][$i]);
+								}
+							}
+						}
+						if(isset($json["sessionId"]))
+						{
+							$key = $json["sessionId"].":".$json["method"];
+							if(array_key_exists($key, $this->event_handlers))
+							{
+								foreach($this->event_handlers[$key] as $i => $handler)
+								{
+									$handler[0]($params);
+									if($handler[1])
+									{
+										unset($this->event_handlers[$key][$i]);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}, 0.001);
+	}
+
+	function isRunning(): bool
+	{
+		return proc_get_status($this->proc)["running"];
 	}
 
 	function on(string $event, callable $function): ChromiumInstance
@@ -63,60 +126,6 @@ class ChromiumInstance
 			$function,
 			true
 		];
-		return $this;
-	}
-
-	function handle(): ChromiumInstance
-	{
-		while($frame = $this->socket->readFrame(0))
-		{
-			if($frame instanceof TextFrame)
-			{
-				if($this->logging)
-				{
-					echo "> {$frame->data}\n";
-				}
-				$json = json_decode($frame->data, true);
-				if(isset($json["id"]))
-				{
-					if(array_key_exists($json["id"], $this->callbacks))
-					{
-						$this->callbacks[$json["id"]]($json["result"]);
-						unset($this->callbacks[$json["id"]]);
-					}
-				}
-				else if(isset($json["method"]))
-				{
-					$params = $json["params"] ?? [];
-					if(array_key_exists($json["method"], $this->event_handlers))
-					{
-						foreach($this->event_handlers[$json["method"]] as $i => $handler)
-						{
-							$handler[0]($params);
-							if($handler[1])
-							{
-								unset($this->event_handlers[$json["method"]][$i]);
-							}
-						}
-					}
-					if(isset($json["sessionId"]))
-					{
-						$key = $json["sessionId"].":".$json["method"];
-						if(array_key_exists($key, $this->event_handlers))
-						{
-							foreach($this->event_handlers[$key] as $i => $handler)
-							{
-								$handler[0]($params);
-								if($handler[1])
-								{
-									unset($this->event_handlers[$key][$i]);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
 		return $this;
 	}
 
@@ -168,11 +177,6 @@ class ChromiumInstance
 		$this->socket->writeFrame(new TextFrame($json))
 					 ->flush();
 		return $this;
-	}
-
-	function isRunning(): bool
-	{
-		return proc_get_status($this->proc)["running"];
 	}
 
 	function close($callback = null)

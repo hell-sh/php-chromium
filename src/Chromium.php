@@ -4,7 +4,7 @@ use RuntimeException;
 use ZipArchive;
 class Chromium
 {
-	const LATEST_REVISION = 686378;
+	const LATEST_REVISION = 706915;
 	const DOWNLOAD_URL_BASE = "https://storage.googleapis.com/chromium-browser-snapshots/";
 	/**
 	 * @var int $revision
