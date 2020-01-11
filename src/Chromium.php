@@ -1,9 +1,10 @@
 <?php
-namespace pac;
+namespace Chromium;
 use RuntimeException;
 use ZipArchive;
 class Chromium
 {
+	const REVS_DIRECTORY = __DIR__."/../revs/";
 	const LATEST_REVISION = 706915;
 	const DOWNLOAD_URL_BASE = "https://storage.googleapis.com/chromium-browser-snapshots/";
 	/**
@@ -72,20 +73,20 @@ class Chromium
 
 	function download()
 	{
-		$dir = pac::REVS_DIRECTORY.$this->revision;
-		if(is_dir(pac::REVS_DIRECTORY))
+		$dir = self::REVS_DIRECTORY.$this->revision;
+		if(is_dir(self::REVS_DIRECTORY))
 		{
 			if(is_dir($dir))
 			{
-				pac::recursivelyDelete($dir);
+				self::recursivelyDelete($dir);
 			}
 		}
 		else
 		{
-			mkdir(pac::REVS_DIRECTORY);
+			mkdir(self::REVS_DIRECTORY);
 		}
 		mkdir($dir);
-		$zip_file = pac::REVS_DIRECTORY.$this->revision."/".$this->getArchiveName().".zip";
+		$zip_file = self::REVS_DIRECTORY.$this->revision."/".$this->getArchiveName().".zip";
 		$fh = fopen($zip_file, "w");
 		$ch = curl_init();
 		curl_setopt_array($ch, [
@@ -115,29 +116,64 @@ class Chromium
 		unlink($zip_file);
 	}
 
-	function isAvailable(): bool
+	/**
+	 * Recursively deletes a folder.
+	 *
+	 * @param string $path
+	 */
+	static function recursivelyDelete(string $path)
 	{
-		return is_dir(pac::REVS_DIRECTORY.$this->revision."/".$this->getArchiveName());
+		if(substr($path, -1) == "/")
+		{
+			$path = substr($path, 0, -1);
+		}
+		if(!file_exists($path))
+		{
+			return;
+		}
+		if(is_dir($path))
+		{
+			foreach(scandir($path) as $file)
+			{
+				if(!in_array($file, [
+					".",
+					".."
+				]))
+				{
+					self::recursivelyDelete($path."/".$file);
+				}
+			}
+			rmdir($path);
+		}
+		else
+		{
+			unlink($path);
+		}
 	}
 
-	function start(bool $headless = true, bool $disable_gpu = false): ChromiumInstance
+	function isAvailable(): bool
 	{
-		return new ChromiumInstance($this->getExecutable(), $headless, $disable_gpu);
+		return is_dir(self::REVS_DIRECTORY.$this->revision."/".$this->getArchiveName());
+	}
+
+	function start(bool $headless = true, bool $disable_gpu = false): Instance
+	{
+		return new Instance($this->getExecutable(), $headless, $disable_gpu);
 	}
 
 	function getExecutable(): string
 	{
 		if(stristr(PHP_OS, "LINUX"))
 		{
-			return realpath(pac::REVS_DIRECTORY.$this->revision."/".$this->getArchiveName()."/chrome");
+			return realpath(self::REVS_DIRECTORY.$this->revision."/".$this->getArchiveName()."/chrome");
 		}
 		else if(stristr(PHP_OS, "DAR"))
 		{
-			return realpath(pac::REVS_DIRECTORY.$this->revision."/".$this->getArchiveName()."/Chromium.app/Contents/MacOS/Chromium");
+			return realpath(self::REVS_DIRECTORY.$this->revision."/".$this->getArchiveName()."/Chromium.app/Contents/MacOS/Chromium");
 		}
 		else if(defined("PHP_WINDOWS_VERSION_MAJOR"))
 		{
-			return realpath(pac::REVS_DIRECTORY.$this->revision."/".$this->getArchiveName()."/chrome.exe");
+			return realpath(self::REVS_DIRECTORY.$this->revision."/".$this->getArchiveName()."/chrome.exe");
 		}
 		throw new RuntimeException("Couldn't identify operating system");
 	}

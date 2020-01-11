@@ -1,12 +1,12 @@
 <?php
-namespace pac;
+namespace Chromium;
 class Page
 {
 	public $ci;
 	public $sessionId;
 	public $targetId;
 
-	function __construct(ChromiumInstance $ci, string $sessionId, string $targetId)
+	function __construct(Instance $ci, string $sessionId, string $targetId)
 	{
 		$this->ci = $ci;
 		$this->sessionId = $sessionId;

@@ -4,9 +4,9 @@ if(empty($argv[1]))
 	die("Syntax: php screenshot.php <url>");
 }
 require "../vendor/autoload.php";
-use pac\
+use Chromium\
 {Chromium, Page};
-use pas\pas;
+use Asyncore\Asyncore;
 $c = new Chromium();
 iF(!$c->isAvailable())
 {
@@ -37,4 +37,4 @@ $i->newPage(function(Page $page) use (&$i)
 	})
 		 ->navigate($argv[1]);
 });
-pas::loop();
+Asyncore::loop();

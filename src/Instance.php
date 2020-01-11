@@ -1,10 +1,10 @@
 <?php
-namespace pac;
+namespace Chromium;
+use Asyncore\Condition;
 use Exception;
-use pas\pas;
-use paws\
+use WebSocket\
 {ServerConnection, TextFrame};
-class ChromiumInstance
+class Instance
 {
 	public $proc;
 	public $pipes;
@@ -48,7 +48,7 @@ class ChromiumInstance
 		], $this->pipes);
 		$out = fread($this->pipes[2], 1024);
 		$this->socket = new ServerConnection(trim(explode("\n", substr($out, strpos($out, "ws://")))[0]));
-		$this->running_condition = pas::condition(function()
+		$this->running_condition = new Condition(function()
 		{
 			return $this->isRunning();
 		});
@@ -111,7 +111,7 @@ class ChromiumInstance
 		return proc_get_status($this->proc)["running"];
 	}
 
-	function on(string $event, callable $function): ChromiumInstance
+	function on(string $event, callable $function): Instance
 	{
 		$this->event_handlers[$event][] = [
 			$function,
@@ -120,7 +120,7 @@ class ChromiumInstance
 		return $this;
 	}
 
-	function once(string $event, callable $function): ChromiumInstance
+	function once(string $event, callable $function): Instance
 	{
 		$this->event_handlers[$event][] = [
 			$function,
@@ -129,7 +129,7 @@ class ChromiumInstance
 		return $this;
 	}
 
-	function newPage(callable $callback): ChromiumInstance
+	function newPage(callable $callback): Instance
 	{
 		$this->exec("Target.createTarget", [
 			"url" => "about:blank"
@@ -151,7 +151,7 @@ class ChromiumInstance
 		return $this;
 	}
 
-	function exec(string $method, array $params = [], $callback = null, string $sessionId = ""): ChromiumInstance
+	function exec(string $method, array $params = [], $callback = null, string $sessionId = ""): Instance
 	{
 		$json = [
 			"id" => ++$this->counter,

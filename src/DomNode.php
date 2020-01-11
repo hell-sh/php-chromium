@@ -1,5 +1,5 @@
 <?php
-namespace pac;
+namespace Chromium;
 class DomNode
 {
 	public $page;
